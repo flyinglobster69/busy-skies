@@ -17,52 +17,56 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
 
         # Aircraft Image
-        self.image = pygame.image.load('./assets/.png')
+        self.image = pygame.image.load('./assets/boeing777.png')
         self.image = pygame.transform.scale(self.image, (128, 128))
 
         # Rect
         self.rect = self.image.get_rect()
 
     def update(self):
-        """Follow the mouse"""
+        """The plane has a fixed X position and a variable Y position where it can move up and down"""
 
         self.rect.center = pygame.mouse.get_pos()
 
 
-# class Primogem(pygame.sprite.Sprite):
-#     def __init__(self):
-#         super().__init__()
-#
-#         # Image
-#         self.image = pygame.image.load('./assets/primogem.png')
-#         self.image = pygame.transform.scale(self.image, (64, 64))
-#
-#         # Rect
-#         self.rect = self.image.get_rect()
-#         self.rect.center = random_coords()
-
-
-class Mora(pygame.sprite.Sprite):
+class Traffic(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
+        # Traffic is generated randomly, with randomized aircraft types
+
+        # Images list
+        traffic_0 = pygame.image.load('./assets/')
+        traffic_1 = pygame.image.load('./assets/')
+        traffic_2 = pygame.image.load('./assets/')
+        traffic_3 = pygame.image.load('./assets/')
+        traffic_4 = pygame.image.load('./assets/')
+        traffic_5 = pygame.image.load('./assets/')
+        traffic_6 = pygame.image.load('./assets/')
+        traffic_list = [traffic_0,
+                        traffic_1,
+                        traffic_2,
+                        traffic_3,
+                        traffic_4,
+                        traffic_5,
+                        traffic_6]
 
         # Image
-        self.image = pygame.image.load('./assets/mora.png')
-        self.image = pygame.transform.scale(self.image, (64, 64))
+        self.image = random.randrange(0, traffic_list.__len__())
+        # self.image = pygame.transform.scale(self.image, (64, 64))
 
         # Rect
         self.rect = self.image.get_rect()
         self.rect.center = random_coords()
 
 
-class Rocc(pygame.sprite.Sprite):
+class Runway(pygame.sprite.Sprite):
     # Constructor
     def __init__(self):
         # Call superclass constructor
         super().__init__()
 
         # Image
-        self.image = pygame.image.load('./assets/rocc.png')
+        self.image = pygame.image.load('./assets/')
         self.image = pygame.transform.scale(self.image, (64, 64))
 
         self.rect = self.image.get_rect()
@@ -92,8 +96,8 @@ class Rocc(pygame.sprite.Sprite):
 
 
 def random_coords():
-    """Returns a random x, y coord between 0, WIDTH and 0, HEIGHT"""
-    return random.randrange(0, WIDTH), random.randrange(0, HEIGHT)
+    """Returns a random x, y coord between 0, HEIGHT"""
+    return random.randrange(0, HEIGHT)
 
 
 def main():
@@ -111,37 +115,24 @@ def main():
     done = False
     clock = pygame.time.Clock()
     died = False
-    mora_count = 10
-    rocc_count = 4
-    # primo_count = 1
-    mora_collected = 0
-    # primos_collected = 0
-    health_points = 5
-    game_font = './assets/TT_Skip-E.ttf'
-    score_font = pygame.font.Font(game_font, 20)
-    death_font = pygame.font.Font(game_font, 69)
-    health_font = pygame.font.Font(game_font, 20)
+    traffic_count = 10
+    health_points = 1
+    game_font = pygame.font.SysFont('Calibri', 20)
 
-    treasure_sound = pygame.mixer.Sound('./assets/collect.ogg')
-    death_sound = pygame.mixer.Sound('./assets/death.ogg')
-
-    # i_will_have_order = pygame.mixer.Sound('./assets/order.mp4')
+    eng_sound = pygame.mixer.Sound('./assets/')
+    radio = pygame.mixer.Sound('./assets/')
 
     # Create sprite groups
     all_sprites_group = pygame.sprite.Group()
-    treasure_sprites_group = pygame.sprite.Group()
-    enemy_sprites_group = pygame.sprite.Group()
+    traffic_sprites_group = pygame.sprite.Group()
+    runway_sprites_group = pygame.sprite.Group()
 
     # Create treasure sprites
-    for i in range(mora_count):
-        mora = Mora()
-        all_sprites_group.add(mora)
-        treasure_sprites_group.add(mora)
+    for i in range(traffic_count):
+        traffic = Traffic()
+        all_sprites_group.add(traffic)
+        traffic_sprites_group.add(traffic)
 
-    for i in range(rocc_count):
-        rocc = Rocc()
-        all_sprites_group.add(rocc)
-        enemy_sprites_group.add(rocc)
 
     # for i in range(primo_count):
     #     primo = Primogem()
