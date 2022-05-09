@@ -7,12 +7,14 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
 SKY_BLUE = (95, 165, 228)
-WIDTH = 1280
-HEIGHT = 720
+WIDTH = 1920
+HEIGHT = 1080
 TITLE = "Flight 16"
 
 
 class Player(pygame.sprite.Sprite):
+    """This class represents the aircraft on the left that the player controls"""
+
     def __init__(self):
         super().__init__()
 
@@ -23,10 +25,42 @@ class Player(pygame.sprite.Sprite):
         # Rect
         self.rect = self.image.get_rect()
 
-    def update(self):
-        """The plane has a fixed X position and a variable Y position where it can move up and down"""
+        # Set vertical speed
+        self.change_y = 0
 
-        self.rect.center = pygame.mouse.get_pos()
+    def update(self):
+        """ Move the player aircraft up and down"""
+        # Gravity
+        self.calc_grav()
+
+        # Move up/down
+        self.rect.y += self.change_y
+
+        # # Check and see if we hit anything in the vertical axis
+        # block_hit_list = pygame.sprite.spritecollide(self, self.level.platform_list, False)
+        # for block in block_hit_list:
+        #
+        #     # Reset our position based on the top/bottom of the object.
+        #     # TODO: Register crash
+        #     if self.change_y > 0:
+        #         self.rect.bottom = block.rect.top
+        #     elif self.change_y < 0:
+        #         self.rect.top = block.rect.bottom
+        #
+        #     # Stop our vertical movement
+        #     self.change_y = 0
+
+    def calc_grav(self):
+        """ Calculate effect of gravity. """
+        if self.change_y == 0:
+            self.change_y = 1
+        else:
+            self.change_y += .35  # Strength of gravity
+
+        # See if we are on the ground.
+        if self.rect.y >= HEIGHT - self.rect.height and self.change_y >= 0:
+            self.change_y = 0
+            self.rect.y = HEIGHT - self.rect.height
 
 
 class Traffic(pygame.sprite.Sprite):
@@ -35,28 +69,33 @@ class Traffic(pygame.sprite.Sprite):
         # Traffic is generated randomly, with randomized aircraft types
 
         # Images list
-        traffic_0 = pygame.image.load('./assets/')
-        traffic_1 = pygame.image.load('./assets/')
-        traffic_2 = pygame.image.load('./assets/')
-        traffic_3 = pygame.image.load('./assets/')
-        traffic_4 = pygame.image.load('./assets/')
-        traffic_5 = pygame.image.load('./assets/')
-        traffic_6 = pygame.image.load('./assets/')
+        traffic_0 = pygame.image.load('./assets/aircanada.png')
+        traffic_1 = pygame.image.load('./assets/british.png')
+        traffic_2 = pygame.image.load('./assets/delta.png')
+        traffic_3 = pygame.image.load('./assets/ryanair.png')
+        traffic_4 = pygame.image.load('./assets/airfrance.png')
+        # traffic_5 = pygame.image.load('./assets/')
+        # traffic_6 = pygame.image.load('./assets/')
         traffic_list = [traffic_0,
                         traffic_1,
                         traffic_2,
                         traffic_3,
                         traffic_4,
-                        traffic_5,
-                        traffic_6]
+                        # traffic_5,
+                        # traffic_6
+                        ]
 
         # Image
-        self.image = random.randrange(0, traffic_list.__len__())
+        self.image = traffic_list[random.randrange(0, traffic_list.__len__())]
         # self.image = pygame.transform.scale(self.image, (64, 64))
 
         # Rect
         self.rect = self.image.get_rect()
-        self.rect.center = random_coords()
+        self.rect.center = (self.rect.x, random_coords_planes())
+
+    def update(self):
+        """Planes will spawn outside the screen and float to the other side of the screen"""
+        self.rect.y -= random.randrange(3, 9)
 
 
 class Runway(pygame.sprite.Sprite):
@@ -66,21 +105,28 @@ class Runway(pygame.sprite.Sprite):
         super().__init__()
 
         # Image
-        self.image = pygame.image.load('./assets/')
-        # self.image = pygame.transform.scale(self.image, (64, 64))
+        self.image = pygame.Surface([1000, 100])
 
         self.rect = self.image.get_rect()
-        self.rect.center = random_coords()
+        self.rect.center = (WIDTH, HEIGHT)
 
 
     def update(self):
-        """Change the x coordinate"""
+        """Move the runway from the right to the left of the screen slowly"""
         self.rect.x -= 1
 
 
-def random_coords():
-    """Returns a random x, y coord between 0, HEIGHT"""
+def random_coords_player():
+    """Returns a random x, y coord between 50, HEIGHT"""
+    return random.randrange(50, HEIGHT)
+
+
+def random_coords_planes():
+    """Returns a random x, y coord between WIDTH + 50, HEIGHT"""
     return random.randrange(0, HEIGHT)
+
+
+
 
 
 def main():
@@ -99,8 +145,8 @@ def main():
     health_points = 1
     game_font = pygame.font.SysFont('Calibri', 20)
 
-    eng_sound = pygame.mixer.Sound('./assets/')
-    radio = pygame.mixer.Sound('./assets/')
+    music = pygame.mixer.Sound('./assets/localelevator.mp3') # Kevin Macleod - Local Forecast - Elevator
+    # collision_sound = pygame.mixer.Sound('./assets/')
 
     # Create sprite groups
     all_sprites_group = pygame.sprite.Group()
@@ -113,15 +159,12 @@ def main():
         all_sprites_group.add(traffic)
         traffic_sprites_group.add(traffic)
 
-
-    # for i in range(primo_count):
-    #     primo = Primogem()
-    #     all_sprites_group.add(primo)
-    #     treasure_sprites_group.add(primo)
-
     # Create player sprite
     player = Player()
     all_sprites_group.add(player)
+
+    # Start music
+    music.play()
 
     # ----- MAIN LOOP
     while not done:
@@ -133,46 +176,23 @@ def main():
         # ----- LOGIC
         all_sprites_group.update()
 
-        # Handle collision between player and treasure sprites
+        # Handle collision between player and traffic sprites
         # spritecollide(sprite, group, dokill, collided = None) -> sprite_list
-        # Zhongli collides with any Treasure Sprite
-        collided_treasure = pygame.sprite.spritecollide(player, treasure_sprites_group, dokill=True, collided=None)
+        # Player aircraft collides with any aircraft
+        collided_traffic = pygame.sprite.spritecollide(player, traffic_sprites_group, dokill=True, collided=None)
 
-        if len(collided_treasure) > 0:
+        if len(collided_traffic) > 0:
             # Some collision has happened
-            treasure_sound.play()
-
-        # Iterate through all collided treasure
-        for treasure in collided_treasure:
-            print(f"x: {treasure.rect.x}, y: {treasure.rect.y}")
-
-            mora = Mora()
-            all_sprites_group.add(mora)
-            treasure_sprites_group.add(mora)
-            mora_collected += 1
-
-        # Collided enemy
-        collided_enemy = pygame.sprite.spritecollide(player, enemy_sprites_group, dokill=False, collided=None)
-
-        if len(collided_enemy) > 0:
-            # Some collision has happened
-            health_points -= 1
-            if health_points < 1:
-                died = True
-                death_sound.play()
-                death_msg = death_font.render("I WILL HAVE ORDER", True, WHITE)
-            else:
-                pass
-            # death_msg = death_font.render("I WILL HAVE ORDER", True, WHITE)
-            # screen.blit(death_msg, (WIDTH/2, HEIGHT/2))
-
+            died = True
+            # collision_sound.play()
+            death_msg = game_font.render("United 328 Heavy suffered a mid-air collision and crashed.", True, WHITE)
 
         # ----- RENDER
-        screen.fill(BLACK)
+        screen.fill(SKY_BLUE)
         all_sprites_group.draw(screen)
-        score = score_font.render(f"Mora Collected: {mora_collected}", True, WHITE)
+        score = game_font.render(f"Time survived: {clock}", True, WHITE)
         screen.blit(score, (10, 10))
-        health = health_font.render(f"Health Remanining: {health_points}", True, WHITE)
+        health = game_font.render(f"Lives remaining: {health_points}", True, WHITE)
         screen.blit(health, (10, 30))
 
         if died:
@@ -187,7 +207,7 @@ def main():
         pygame.display.flip()
         clock.tick(60)
 
-    print(f"Mora: {mora_collected}")
+    print(f"Time survived: {clock}")
     pygame.quit()
 
 
