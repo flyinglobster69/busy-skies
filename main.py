@@ -18,7 +18,7 @@ class Player(pygame.sprite.Sprite):
 
         # Aircraft Image
         self.image = pygame.image.load('./assets/boeing777.png')
-        self.image = pygame.transform.scale(self.image, (128, 128))
+        # self.image = pygame.transform.scale(self.image, (128, 128))
 
         # Rect
         self.rect = self.image.get_rect()
@@ -67,32 +67,15 @@ class Runway(pygame.sprite.Sprite):
 
         # Image
         self.image = pygame.image.load('./assets/')
-        self.image = pygame.transform.scale(self.image, (64, 64))
+        # self.image = pygame.transform.scale(self.image, (64, 64))
 
         self.rect = self.image.get_rect()
         self.rect.center = random_coords()
 
-        self.xv = 3
-        self.yv = 3
 
     def update(self):
-        """Change the x coordinate based on the xv"""
-        self.rect.x += self.xv
-        """Change the y coordinate based on the yv"""
-        self.rect.y += self.yv
-
-        if self.rect.right > WIDTH:
-            self.rect.right = WIDTH
-            self.xv *= -1
-        if self.rect.left < 0:
-            self.rect.left = 0
-            self.xv *= -1
-        if self.rect.top < 0:
-            self.rect.top = 0
-            self.yv *= -1
-        if self.rect.bottom > HEIGHT:
-            self.rect.bottom = HEIGHT
-            self.yv *= -1
+        """Change the x coordinate"""
+        self.rect.x -= 1
 
 
 def random_coords():
@@ -107,9 +90,6 @@ def main():
     size = (WIDTH, HEIGHT)
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption(TITLE)
-
-    # Remove cursor
-    pygame.mouse.set_visible(False)
 
     # ----- LOCAL VARIABLES
     done = False
