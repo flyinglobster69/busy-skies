@@ -6,9 +6,10 @@ import pygame
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
+RED = (255, 0, 0)
 SKY_BLUE = (95, 165, 228)
-WIDTH = 1920
-HEIGHT = 1080
+WIDTH = 2560
+HEIGHT = 1440
 TITLE = "Flight 16"
 
 
@@ -36,31 +37,25 @@ class Player(pygame.sprite.Sprite):
         # Move up/down
         self.rect.y += self.change_y
 
-        # # Check and see if we hit anything in the vertical axis
-        # block_hit_list = pygame.sprite.spritecollide(self, self.level.platform_list, False)
-        # for block in block_hit_list:
-        #
-        #     # Reset our position based on the top/bottom of the object.
-        #     # TODO: Register crash
-        #     if self.change_y > 0:
-        #         self.rect.bottom = block.rect.top
-        #     elif self.change_y < 0:
-        #         self.rect.top = block.rect.bottom
-        #
-        #     # Stop our vertical movement
-        #     self.change_y = 0
-
     def calc_grav(self):
         """ Calculate effect of gravity. """
         if self.change_y == 0:
             self.change_y = 1
         else:
-            self.change_y += .35  # Strength of gravity
+            self.change_y += .10  # Strength of gravity
 
         # See if we are on the ground.
         if self.rect.y >= HEIGHT - self.rect.height and self.change_y >= 0:
             self.change_y = 0
             self.rect.y = HEIGHT - self.rect.height
+
+        # See if we are at the top of the screen
+        if self.rect.y <= 0 + self.rect.height and self.change_y <= 0:
+            self.change_y = 0
+            self.rect.y = 0 + self.rect.height
+
+    def gain_altitude(self):
+        self.change_y -= 3
 
 
 class Traffic(pygame.sprite.Sprite):
@@ -69,18 +64,19 @@ class Traffic(pygame.sprite.Sprite):
         # Traffic is generated randomly, with randomized aircraft types
 
         # Images list
+        # Airliners PNG images individually adjusted to be proportionally accurate
         traffic_0 = pygame.image.load('./assets/aircanada.png')
         traffic_1 = pygame.image.load('./assets/british.png')
         traffic_2 = pygame.image.load('./assets/delta.png')
-        traffic_3 = pygame.image.load('./assets/ryanair.png')
+        # traffic_3 = pygame.image.load('./assets/ryanair.png')
         traffic_4 = pygame.image.load('./assets/airfrance.png')
         # traffic_5 = pygame.image.load('./assets/')
         # traffic_6 = pygame.image.load('./assets/')
         traffic_list = [traffic_0,
                         traffic_1,
                         traffic_2,
-                        traffic_3,
-                        traffic_4,
+                        #traffic_3,
+                        traffic_4
                         # traffic_5,
                         # traffic_6
                         ]
@@ -91,11 +87,16 @@ class Traffic(pygame.sprite.Sprite):
 
         # Rect
         self.rect = self.image.get_rect()
-        self.rect.center = (self.rect.x, random_coords_planes())
+        self.rect.center = (random_coords_planes())
 
     def update(self):
         """Planes will spawn outside the screen and float to the other side of the screen"""
-        self.rect.y -= random.randrange(3, 9)
+        self.rect.x -= random.randrange(3, 9)
+
+        # When the Traffic reaches the left side of the screen, respawn it on the right
+        if self.rect.x < -500:
+            self.rect.center = random_coords_planes()
+            # self.image = traffic_list[random.randrange(0, traffic_lsit.__len__())]
 
 
 class Runway(pygame.sprite.Sprite):
@@ -122,8 +123,8 @@ def random_coords_player():
 
 
 def random_coords_planes():
-    """Returns a random x, y coord between WIDTH + 50, HEIGHT"""
-    return random.randrange(0, HEIGHT)
+    """Returns WIDTH and y coord between 0, HEIGHT"""
+    return random.randrange(WIDTH, WIDTH * 2), random.randrange(0, HEIGHT)
 
 
 
@@ -141,8 +142,9 @@ def main():
     done = False
     clock = pygame.time.Clock()
     died = False
-    traffic_count = 10
+    traffic_count = 5
     health_points = 1
+    vertical_speed = 0
     game_font = pygame.font.SysFont('Calibri', 20)
 
     music = pygame.mixer.Sound('./assets/localelevator.mp3') # Kevin Macleod - Local Forecast - Elevator
@@ -173,8 +175,15 @@ def main():
             if event.type == pygame.QUIT:
                 done = True
 
+            # Keyboard controls
+            if event.type == pygame.KEYDOWN:
+                player.gain_altitude()
+
         # ----- LOGIC
         all_sprites_group.update()
+
+        # Update vertical speed
+        vertical_speed = (player.change_y * -1) * 1000
 
         # Handle collision between player and traffic sprites
         # spritecollide(sprite, group, dokill, collided = None) -> sprite_list
@@ -190,11 +199,28 @@ def main():
         # ----- RENDER
         screen.fill(SKY_BLUE)
         all_sprites_group.draw(screen)
+
+        # Time survived
         score = game_font.render(f"Time survived: {clock}", True, WHITE)
         screen.blit(score, (10, 10))
+
+        # Lives remaining
         health = game_font.render(f"Lives remaining: {health_points}", True, WHITE)
         screen.blit(health, (10, 30))
 
+        # Player vertical speed
+        vs = game_font.render(f"Vertical speed: {vertical_speed} feet per minute", True, WHITE)
+        screen.blit(vs, (10, 50))
+
+        # Vertical speed WARNING
+        if vertical_speed > 4000:
+            warning = game_font.render("Caution Vertical Speed", True, RED)
+            screen.blit(warning, (10, 70))
+        elif vertical_speed < -4000:
+            warning = game_font.render("Caution Vertical Speed", True, RED)
+            screen.blit(warning, (10, 70))
+
+        # Called when died = True
         if died:
             screen.blit(death_msg, (300, HEIGHT/2))
             pygame.display.flip()
@@ -205,7 +231,7 @@ def main():
 
         # ----- UPDATE DISPLAY
         pygame.display.flip()
-        clock.tick(60)
+        clock.tick(69)  # nice
 
     print(f"Time survived: {clock}")
     pygame.quit()
