@@ -6,12 +6,35 @@ import pygame
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
+GREEN = (0, 255, 69)
 RED = (255, 0, 0)
 SKY_BLUE = (69, 165, 228)
 
 # --- Objects drawn on standard 1440p (2K) resolution ---
 WIDTH = 2560
 HEIGHT = 1440
+
+# Images list
+# Airliners PNG images individually adjusted to be proportionally accurate
+traffic_0 = pygame.image.load('./assets/aircanada.png')
+traffic_1 = pygame.image.load('./assets/british.png')
+traffic_2 = pygame.image.load('./assets/delta.png')
+traffic_3 = pygame.image.load('./assets/lufthansa.png')
+traffic_4 = pygame.image.load('./assets/airfrance.png')
+traffic_5 = pygame.image.load('./assets/united.png')
+traffic_6 = pygame.image.load('./assets/ryanair.png')
+traffic_7 = pygame.image.load('./assets/etihad.png')
+traffic_8 = pygame.image.load('./assets/spirit.png')
+traffic_list = [traffic_0,
+                traffic_1,
+                traffic_2,
+                traffic_3,
+                traffic_4,
+                traffic_5,
+                traffic_6,
+                traffic_7,
+                traffic_8
+                ]
 
 TITLE = "Busy Skies"
 
@@ -22,9 +45,8 @@ class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
 
-        # Aircraft Image
-        self.image = pygame.image.load('./assets/boeing777.png')
-        # self.image = pygame.transform.scale(self.image, (128, 128))
+        # Random Player Aircraft Image
+        self.image = traffic_list[random.randrange(0, traffic_list.__len__())]
 
         # Rect
         self.rect = self.image.get_rect()
@@ -66,27 +88,8 @@ class Traffic(pygame.sprite.Sprite):
         super().__init__()
         # Traffic is generated randomly, with randomized aircraft types
 
-        # Images list
-        # Airliners PNG images individually adjusted to be proportionally accurate
-        traffic_0 = pygame.image.load('./assets/aircanada.png')
-        traffic_1 = pygame.image.load('./assets/british.png')
-        traffic_2 = pygame.image.load('./assets/delta.png')
-        # traffic_3 = pygame.image.load('./assets/ryanair.png')
-        traffic_4 = pygame.image.load('./assets/airfrance.png')
-        # traffic_5 = pygame.image.load('./assets/')
-        # traffic_6 = pygame.image.load('./assets/')
-        traffic_list = [traffic_0,
-                        traffic_1,
-                        traffic_2,
-                        #traffic_3,
-                        traffic_4
-                        # traffic_5,
-                        # traffic_6
-                        ]
-
-        # Image
+        # Random Image
         self.image = traffic_list[random.randrange(0, traffic_list.__len__())]
-        # self.image = pygame.transform.scale(self.image, (64, 64))
 
         # Rect
         self.rect = self.image.get_rect()
@@ -99,7 +102,6 @@ class Traffic(pygame.sprite.Sprite):
         # When the Traffic reaches the left side of the screen, respawn it on the right
         if self.rect.x < -500:
             self.rect.center = random_coords_planes()
-            # self.image = traffic_list[random.randrange(0, traffic_lsit.__len__())]
 
 
 class Runway(pygame.sprite.Sprite):
@@ -114,7 +116,6 @@ class Runway(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (WIDTH, HEIGHT)
 
-
     def update(self):
         """Move the runway from the right to the left of the screen slowly"""
         self.rect.x -= 1
@@ -127,10 +128,7 @@ def random_coords_player():
 
 def random_coords_planes():
     """Returns WIDTH and y coord between 0, HEIGHT"""
-    return random.randrange(WIDTH, WIDTH * 2), random.randrange(0, HEIGHT)
-
-
-
+    return random.randrange(WIDTH, WIDTH * 3), random.randrange(0, HEIGHT)
 
 
 def main():
@@ -145,12 +143,12 @@ def main():
     done = False
     clock = pygame.time.Clock()
     died = False
-    traffic_count = 10
+    traffic_count = 16
     health_points = 1
     vertical_speed = 0
     game_font = pygame.font.SysFont('Calibri', 20)
 
-    music = pygame.mixer.Sound('./assets/localelevator.mp3') # Kevin Macleod - Local Forecast - Elevator
+    music = pygame.mixer.Sound('./assets/localelevator.mp3')  # Kevin Macleod - Local Forecast - Elevator
     # collision_sound = pygame.mixer.Sound('./assets/')
 
     # Create sprite groups
@@ -197,18 +195,20 @@ def main():
             # Some collision has happened
             died = True
             # collision_sound.play()
-            death_msg = game_font.render("United 328 Heavy suffered a mid-air collision and crashed.", True, WHITE)
+            death_msg = game_font.render("You crashed into another airplane and died :(", True, WHITE)
 
         # ----- RENDER
         screen.fill(SKY_BLUE)
         all_sprites_group.draw(screen)
 
         # Time survived
-        score = game_font.render(f"Current FPS: {clock}", True, WHITE)
-        screen.blit(score, (10, 10))
+        instructions = game_font.render(
+            "Press any key to increase the rate of climb and counter the effect of gravity.",
+            True, BLACK)
+        screen.blit(instructions, (10, 10))
 
         # Lives remaining
-        health = game_font.render(f"Lives remaining: {health_points}", True, WHITE)
+        health = game_font.render("Caution hitbox.", True, GREEN)
         screen.blit(health, (10, 30))
 
         # Player vertical speed
@@ -225,7 +225,7 @@ def main():
 
         # Called when died = True
         if died:
-            screen.blit(death_msg, (300, HEIGHT/2))
+            screen.blit(death_msg, (300, HEIGHT / 2))
             pygame.display.flip()
             pygame.time.wait(5000)
             done = True
@@ -236,7 +236,6 @@ def main():
         pygame.display.flip()
         clock.tick(69)  # nice
 
-    print(f"Time survived: {clock}")
     pygame.quit()
 
 
