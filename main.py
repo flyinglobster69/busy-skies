@@ -7,10 +7,13 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
 RED = (255, 0, 0)
-SKY_BLUE = (95, 165, 228)
+SKY_BLUE = (69, 165, 228)
+
+# --- Objects drawn on standard 1440p (2K) resolution ---
 WIDTH = 2560
 HEIGHT = 1440
-TITLE = "Flight 16"
+
+TITLE = "Busy Skies"
 
 
 class Player(pygame.sprite.Sprite):
@@ -142,7 +145,7 @@ def main():
     done = False
     clock = pygame.time.Clock()
     died = False
-    traffic_count = 5
+    traffic_count = 10
     health_points = 1
     vertical_speed = 0
     game_font = pygame.font.SysFont('Calibri', 20)
@@ -201,7 +204,7 @@ def main():
         all_sprites_group.draw(screen)
 
         # Time survived
-        score = game_font.render(f"Time survived: {clock}", True, WHITE)
+        score = game_font.render(f"Current FPS: {clock}", True, WHITE)
         screen.blit(score, (10, 10))
 
         # Lives remaining
