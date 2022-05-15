@@ -144,11 +144,14 @@ def main():
     clock = pygame.time.Clock()
     died = False
     traffic_count = 16
-    health_points = 1
-    vertical_speed = 0
-    game_font = pygame.font.SysFont('Calibri', 20)
+    game_font = pygame.font.SysFont('Calibri', 40)
+    death_font = pygame.font.SysFont('Calibri', 80)
 
-    music = pygame.mixer.Sound('./assets/localelevator.mp3')  # Kevin Macleod - Local Forecast - Elevator
+    music = pygame.mixer.Sound('./assets/localelevator.mp3')
+        # Local Forecast - Elevator Kevin MacLeod (incompetech.com)
+        # Licensed under Creative Commons: By Attribution 3.0 License
+        # http://creativecommons.org/licenses/by/3.0/
+    death_sound = pygame.mixer.Sound('./assets/deathsound.mp3')
     # collision_sound = pygame.mixer.Sound('./assets/')
 
     # Create sprite groups
@@ -194,8 +197,9 @@ def main():
         if len(collided_traffic) > 0:
             # Some collision has happened
             died = True
-            # collision_sound.play()
-            death_msg = game_font.render("You crashed into another airplane and died :(", True, WHITE)
+            music.stop()
+            death_sound.play()
+            death_msg = death_font.render("You crashed into another airplane and died :(", True, WHITE)
 
         # ----- RENDER
         screen.fill(SKY_BLUE)
@@ -207,21 +211,21 @@ def main():
             True, BLACK)
         screen.blit(instructions, (10, 10))
 
-        # Lives remaining
-        health = game_font.render("Caution hitbox.", True, GREEN)
-        screen.blit(health, (10, 30))
+        # Caution hitbox
+        health = game_font.render("Caution Wake Turbulence (hitbox).", True, GREEN)
+        screen.blit(health, (10, 50))
 
         # Player vertical speed
         vs = game_font.render(f"Vertical speed: {vertical_speed} feet per minute", True, WHITE)
-        screen.blit(vs, (10, 50))
+        screen.blit(vs, (10, 90))
 
         # Vertical speed WARNING
         if vertical_speed > 4000:
             warning = game_font.render("Caution Vertical Speed", True, RED)
-            screen.blit(warning, (10, 70))
+            screen.blit(warning, (10, 130))
         elif vertical_speed < -4000:
             warning = game_font.render("Caution Vertical Speed", True, RED)
-            screen.blit(warning, (10, 70))
+            screen.blit(warning, (10, 130))
 
         # Called when died = True
         if died:
