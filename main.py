@@ -55,7 +55,7 @@ class Player(pygame.sprite.Sprite):
         self.change_y = 0
 
     def update(self):
-        """ Move the player aircraft up and down"""
+        """Accelerate the player aircraft down due to gravity"""
         # Gravity
         self.calc_grav()
 
@@ -63,18 +63,18 @@ class Player(pygame.sprite.Sprite):
         self.rect.y += self.change_y
 
     def calc_grav(self):
-        """ Calculate effect of gravity. """
+        """Calculate effect of gravity"""
         if self.change_y == 0:
             self.change_y = 1
         else:
             self.change_y += .10  # Strength of gravity
 
-        # See if we are on the ground.
+        # See if we are on the ground, don't let the plane fall below the screen
         if self.rect.y >= HEIGHT - self.rect.height and self.change_y >= 0:
             self.change_y = 0
             self.rect.y = HEIGHT - self.rect.height
 
-        # See if we are at the top of the screen
+        # See if we are at the top of the screen, don't let the plane climb above the screen
         if self.rect.y <= 0 + self.rect.height and self.change_y <= 0:
             self.change_y = 0
             self.rect.y = 0 + self.rect.height
@@ -89,6 +89,7 @@ class Traffic(pygame.sprite.Sprite):
         # Traffic is generated randomly, with randomized aircraft types
 
         # Random Image
+        self.score = 0
         self.image = traffic_list[random.randrange(0, traffic_list.__len__())]
 
         # Rect
@@ -99,26 +100,13 @@ class Traffic(pygame.sprite.Sprite):
         """Planes will spawn outside the screen and float to the other side of the screen"""
         self.rect.x -= random.randrange(3, 9)
 
-        # When the Traffic reaches the left side of the screen, respawn it on the right
-        if self.rect.x < -500:
+        # When the Traffic passes the left side of the screen, respawn it on the right
+        if self.rect.x < -256:
             self.rect.center = random_coords_planes()
 
-
-class Runway(pygame.sprite.Sprite):
-    # Constructor
-    def __init__(self):
-        # Call superclass constructor
-        super().__init__()
-
-        # Image
-        self.image = pygame.Surface([1000, 100])
-
-        self.rect = self.image.get_rect()
-        self.rect.center = (WIDTH, HEIGHT)
-
-    def update(self):
-        """Move the runway from the right to the left of the screen slowly"""
-        self.rect.x -= 1
+        # When the Traffic reaches the left side of the screen, add 1 point to self.score
+        if self.rect.x == 0:
+            self.score += 1
 
 
 def random_coords_player():
@@ -157,7 +145,6 @@ def main():
     # Create sprite groups
     all_sprites_group = pygame.sprite.Group()
     traffic_sprites_group = pygame.sprite.Group()
-    runway_sprites_group = pygame.sprite.Group()
 
     # Create treasure sprites
     for i in range(traffic_count):
@@ -187,7 +174,8 @@ def main():
         all_sprites_group.update()
 
         # Update vertical speed
-        vertical_speed = (player.change_y * -1) * 1000
+        vertical_speed_int = (player.change_y * -1) * 1000
+        vertical_speed = vertical_speed_int
 
         # Handle collision between player and traffic sprites
         # spritecollide(sprite, group, dokill, collided = None) -> sprite_list
@@ -199,7 +187,7 @@ def main():
             died = True
             music.stop()
             death_sound.play()
-            death_msg = death_font.render("You crashed into another airplane and died :(", True, WHITE)
+            death_msg = death_font.render("You crashed into another airplane and died :(", True, RED)
 
         # ----- RENDER
         screen.fill(SKY_BLUE)
@@ -219,20 +207,24 @@ def main():
         vs = game_font.render(f"Vertical speed: {vertical_speed} feet per minute", True, WHITE)
         screen.blit(vs, (10, 90))
 
+        # Score counter
+        score = game_font.render(f"Current score: {traffic.score}", True, WHITE)
+        screen.blit(score, (10, 130))
+
         # Vertical speed WARNING
         if vertical_speed > 4000:
             warning = game_font.render("Caution Vertical Speed", True, RED)
-            screen.blit(warning, (10, 130))
+            screen.blit(warning, (10, 160))
         elif vertical_speed < -4000:
             warning = game_font.render("Caution Vertical Speed", True, RED)
-            screen.blit(warning, (10, 130))
+            screen.blit(warning, (10, 160))
 
         # Called when died = True
         if died:
             screen.blit(death_msg, (300, HEIGHT / 2))
             pygame.display.flip()
             pygame.time.wait(5000)
-            done = True
+            main()
         else:
             pass
 
