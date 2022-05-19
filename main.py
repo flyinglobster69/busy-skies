@@ -1,5 +1,4 @@
 import random
-import time
 import pygame
 
 # ----- CONSTANTS
@@ -36,7 +35,7 @@ traffic_list = [traffic_0,
                 traffic_8
                 ]
 
-TITLE = "Busy Skies"
+TITLE = "Busy Skies (2560x1440)"
 
 
 class Player(pygame.sprite.Sprite):
@@ -79,17 +78,18 @@ class Player(pygame.sprite.Sprite):
             self.change_y = 0
             self.rect.y = 0 + self.rect.height
 
+    # Called when any key is pressed
     def gain_altitude(self):
         self.change_y -= 3
 
 
 class Traffic(pygame.sprite.Sprite):
+
     def __init__(self):
         super().__init__()
         # Traffic is generated randomly, with randomized aircraft types
 
         # Random Image
-        self.score = 0
         self.image = traffic_list[random.randrange(0, traffic_list.__len__())]
 
         # Rect
@@ -103,10 +103,6 @@ class Traffic(pygame.sprite.Sprite):
         # When the Traffic passes the left side of the screen, respawn it on the right
         if self.rect.x < -256:
             self.rect.center = random_coords_planes()
-
-        # When the Traffic reaches the left side of the screen, add 1 point to self.score
-        if self.rect.x == 0:
-            self.score += 1
 
 
 def random_coords_player():
@@ -133,14 +129,13 @@ def main():
     died = False
     traffic_count = 16
     game_font = pygame.font.SysFont('Calibri', 40)
-    death_font = pygame.font.SysFont('Calibri', 80)
+    death_font = pygame.font.SysFont('Calibri Bold', 80)
 
     music = pygame.mixer.Sound('./assets/localelevator.mp3')
         # Local Forecast - Elevator Kevin MacLeod (incompetech.com)
         # Licensed under Creative Commons: By Attribution 3.0 License
         # http://creativecommons.org/licenses/by/3.0/
     death_sound = pygame.mixer.Sound('./assets/deathsound.mp3')
-    # collision_sound = pygame.mixer.Sound('./assets/')
 
     # Create sprite groups
     all_sprites_group = pygame.sprite.Group()
@@ -167,6 +162,7 @@ def main():
                 done = True
 
             # Keyboard controls
+            # Any key pressed
             if event.type == pygame.KEYDOWN:
                 player.gain_altitude()
 
@@ -175,7 +171,7 @@ def main():
 
         # Update vertical speed
         vertical_speed_int = (player.change_y * -1) * 1000
-        vertical_speed = vertical_speed_int
+        vertical_speed = str(vertical_speed_int)[:5]
 
         # Handle collision between player and traffic sprites
         # spritecollide(sprite, group, dokill, collided = None) -> sprite_list
@@ -188,6 +184,7 @@ def main():
             music.stop()
             death_sound.play()
             death_msg = death_font.render("You crashed into another airplane and died :(", True, RED)
+            final_score = death_font.render(f"Time survived: {player_score}seconds", True, WHITE)
 
         # ----- RENDER
         screen.fill(SKY_BLUE)
@@ -208,29 +205,36 @@ def main():
         screen.blit(vs, (10, 90))
 
         # Score counter
-        score = game_font.render(f"Current score: {traffic.score}", True, WHITE)
+        # When the player dies, reset the timer
+        player_score = pygame.time.get_ticks() / 1000
+        score = game_font.render(f"Time survived: {player_score} seconds", True, WHITE)
         screen.blit(score, (10, 130))
 
         # Vertical speed WARNING
-        if vertical_speed > 4000:
+        if vertical_speed_int > 4000:
             warning = game_font.render("Caution Vertical Speed", True, RED)
-            screen.blit(warning, (10, 160))
-        elif vertical_speed < -4000:
+            screen.blit(warning, (10, 170))
+        elif vertical_speed_int < -4000:
             warning = game_font.render("Caution Vertical Speed", True, RED)
-            screen.blit(warning, (10, 160))
+            screen.blit(warning, (10, 170))
 
         # Called when died = True
         if died:
-            screen.blit(death_msg, (300, HEIGHT / 2))
+            # When died, display death_msg and final_score
+            # Wait 5 seconds to play the sound effect
+            # Reboot the game to reset ticks to 0
+            screen.blit(death_msg, (300, HEIGHT / 2 - 50))
+            screen.blit(final_score, (300, HEIGHT / 2 + 50))
             pygame.display.flip()
             pygame.time.wait(5000)
+            pygame.quit()
             main()
         else:
             pass
 
         # ----- UPDATE DISPLAY
         pygame.display.flip()
-        clock.tick(69)  # nice
+        clock.tick(60)
 
     pygame.quit()
 
