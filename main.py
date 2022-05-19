@@ -101,7 +101,7 @@ class Traffic(pygame.sprite.Sprite):
         self.rect.x -= random.randrange(3, 9)
 
         # When the Traffic passes the left side of the screen, respawn it on the right
-        if self.rect.x < -256:
+        if self.rect.x < -512:
             self.rect.center = random_coords_planes()
 
 
@@ -112,7 +112,7 @@ def random_coords_player():
 
 def random_coords_planes():
     """Returns WIDTH and y coord between 0, HEIGHT"""
-    return random.randrange(WIDTH, WIDTH * 3), random.randrange(0, HEIGHT)
+    return random.randrange(WIDTH + 512, WIDTH * 5), random.randrange(0, HEIGHT)
 
 
 def main():
@@ -127,14 +127,14 @@ def main():
     done = False
     clock = pygame.time.Clock()
     died = False
-    traffic_count = 16
+    traffic_count = 32
     game_font = pygame.font.SysFont('Calibri', 40)
     death_font = pygame.font.SysFont('Calibri Bold', 80)
 
     music = pygame.mixer.Sound('./assets/localelevator.mp3')
-        # Local Forecast - Elevator Kevin MacLeod (incompetech.com)
-        # Licensed under Creative Commons: By Attribution 3.0 License
-        # http://creativecommons.org/licenses/by/3.0/
+    # Local Forecast - Elevator Kevin MacLeod (incompetech.com)
+    # Licensed under Creative Commons: By Attribution 3.0 License
+    # http://creativecommons.org/licenses/by/3.0/
     death_sound = pygame.mixer.Sound('./assets/deathsound.mp3')
 
     # Create sprite groups
@@ -171,7 +171,7 @@ def main():
 
         # Update vertical speed
         vertical_speed_int = (player.change_y * -1) * 1000
-        vertical_speed = str(vertical_speed_int)[:5]
+        vertical_speed = str(vertical_speed_int)[:6]
 
         # Handle collision between player and traffic sprites
         # spritecollide(sprite, group, dokill, collided = None) -> sprite_list
@@ -184,7 +184,7 @@ def main():
             music.stop()
             death_sound.play()
             death_msg = death_font.render("You crashed into another airplane and died :(", True, RED)
-            final_score = death_font.render(f"Time survived: {player_score}seconds", True, WHITE)
+            final_score = death_font.render(f"Time survived: {player_score} seconds", True, WHITE)
 
         # ----- RENDER
         screen.fill(SKY_BLUE)
@@ -192,7 +192,7 @@ def main():
 
         # Time survived
         instructions = game_font.render(
-            "Press any key to increase the rate of climb and counter the effect of gravity.",
+            "Press any key to increase the rate of climb and avoid hitting other planes!",
             True, BLACK)
         screen.blit(instructions, (10, 10))
 
